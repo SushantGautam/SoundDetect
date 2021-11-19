@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Sound Demo</title>
+    <link rel="stylesheet" type="text/css"
+        href="https://cdn.jsdelivr.net/gh/bit101/quicksettings@3.0.3/quicksettings.css">
+    <script type="text/javascript"
+        src="https://cdn.jsdelivr.net/gh/bit101/quicksettings@3.0.3/quicksettings.js"></script>
+    <!-- <script type="text/javascript" src="localstoragedemo.js"></script> -->
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+</body>
+
+</html>
+
+
+<script>
+    version = 0.0001 + new Date(); // version number to control browser cache
+    // var settings;
+    var settings = null;
+
+    window.onload = function () {
+
+        // if (localStorage.getItem("NSD-QS"+version ) == null) { localStorage.clear(); } // clear local storage if version is different
+
+        settings = QuickSettings.create(20, 20, "NSD-AI Sound Analysis Demo")
+            .addRange("Overlap Factor", 0.1, 0.9, 0.5, 0.1)
+            .addRange("Probability Threshold", 0.1, 0.9, 0.0, 0.1)
+            .addBoolean("Spectrogram", true)
+            .addBoolean("Embedding", false)
+            .addText("Result", "Waiting. . .")
+            .addColor("color", "#00FF00")
+            .addHTML("Info", "This is demo of Sound Detection for NSD-AI.") // save settings in local storage
+            // .saveInLocalStorage("NSD-QS"+version)
+            ;
+
+    }
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands"></script>
+
+<script type="module">
+    // When calling `create()`, you must provide the type of the audio input.
+    // The two available options are `BROWSER_FFT` and `SOFT_FFT`.
+    // - BROWSER_FFT uses the browser's native Fourier transform.
+    // - SOFT_FFT uses JavaScript implementations of Fourier transform
+    //   (not implemented yet).
+    const recognizer = speechCommands.create('BROWSER_FFT', '18w');
+
+    // Make sure that the underlying model and metadata are loaded via HTTPS
+    // requests.
+    await recognizer.ensureModelLoaded();
+
+    // See the array of words that the recognizer is trained to recognize.
+    console.log(recognizer.wordLabels());
+
+    // `listen()` takes two arguments:
+    // 1. A callback function that is invoked anytime a word is recognized.
+    // 2. A configuration object with adjustable fields such a
+    //    - includeSpectrogram
+    //    - probabilityThreshold
+    //    - includeEmbedding
+
+
+    recognizer.listen(result => {
+        console.log(result)
+        // console.log(result.scores[0])
+        var maxNum = Math.max.apply(null, result.scores);
+        var label = recognizer.wordLabels()[result.scores.indexOf(maxNum)]
+        // debugger
+
+        console.log(maxNum, label, "| Background", result.scores[0])
+        if (['_unknown_', '_background_noise_'].includes(label)) {
+            settings.setValue('Result', "Background Noise");
+            settings.setValue('color', "#0000ff")
+
+        }
+        else {
+            settings.setValue('Result', "Speech Sound!!");
+            settings.setValue('color', "#ff0000");
+        }
+
+
+        // debugger
+        // - result.scores contains the probability scores that correspond to
+        //   recognizer.wordLabels().
+        // - result.spectrogram contains the spectrogram of the recognized word.
+    }, {
+        // overlapFactor :0.9 , //second
+        includeSpectrogram: true,
+        probabilityThreshold: 0.75,
+        invokeCallbackOnNoiseAndUnknown: true
+    });
+
+// Stop the recognition in 10 seconds.
+// setTimeout(() => recognizer.stopListening(), 10e3);
+</script>
