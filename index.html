@@ -34,6 +34,7 @@
             .addText("Result", "Waiting. . .")
             .addColor("color", "#00FF00")
             .addHTML("Info", "This is demo of Sound Detection for NSD-AI.") // save settings in local storage
+            .addHTML("Log", "Loading. . .") // save settings in local storage
             // .saveInLocalStorage("NSD-QS"+version)
             ;
 
@@ -74,7 +75,10 @@
         var label = recognizer.wordLabels()[result.scores.indexOf(maxNum)]
         // debugger
 
-        console.log(maxNum, label, "| Background", result.scores[0])
+        // console.log(maxNum, label, "| Background", result.scores[0])
+
+        settings.setValue('color', "#ff0000");
+
         if (['_unknown_', '_background_noise_'].includes(label)) {
             settings.setValue('Result', "Background Noise");
             settings.setValue('color', "#0000ff")
@@ -82,7 +86,7 @@
         }
         else {
             settings.setValue('Result', "Speech Sound!!");
-            settings.setValue('color', "#ff0000");
+            settings.setValue('Log', maxNum.toFixed(5) + " "+ label + " <br> Background "+ result.scores[0].toFixed(5));
         }
 
 
