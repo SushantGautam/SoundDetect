@@ -18,27 +18,46 @@
 
 
 <script>
-    version = 0.0001 + new Date(); // version number to control browser cache
+    version = "NSD-QS" + 0.0002 //+ new Date(); // version number to control browser cache
     // var settings;
     var settings = null;
 
+
     window.onload = function () {
 
-        // if (localStorage.getItem("NSD-QS"+version ) == null) { localStorage.clear(); } // clear local storage if version is different
+        if (localStorage.getItem(version) == null) { localStorage.clear(); } // clear local storage if version is different
+
+        var count = -3;
+
+        function countFunc() {
+            console.log("count", ++count);
+            if (count > 0) {
+
+                // setTimeout(() => function () {
+                window.location.reload()
+
+                // }(), 0);
+            };
+            return true
+        }
+        countFunc();
 
         settings = QuickSettings.create(20, 20, "NSD-AI Sound Analysis Demo")
-            .addRange("Overlap Factor", 0.1, 0.9, 0.5, 0.1)
-            .addRange("Probability Threshold", 0.1, 0.9, 0.0, 0.1)
+            .addRange("Overlap Factor", 0.1, 0.9, 0.5, 0.1, countFunc)
+            .addRange("Probability Threshold", 0.1, 0.9, 0.0, 0.1, countFunc)
             .addBoolean("Spectrogram", true)
             .addBoolean("Embedding", false)
             .addText("Result", "Waiting. . .")
             .addColor("color", "#00FF00")
             .addHTML("Info", "This is demo of Sound Detection for NSD-AI.") // save settings in local storage
             .addHTML("Log", "Loading. . .") // save settings in local storage
-            // .saveInLocalStorage("NSD-QS"+version)
+            .saveInLocalStorage("NSD-QS" + version)
             ;
+        // settings.setGlobalChangeHandler(countFunc);
 
     }
+
+
 </script>
 
 
@@ -51,7 +70,7 @@
     // - BROWSER_FFT uses the browser's native Fourier transform.
     // - SOFT_FFT uses JavaScript implementations of Fourier transform
     //   (not implemented yet).
-    const recognizer = speechCommands.create('BROWSER_FFT', '18w');
+    var recognizer = speechCommands.create('BROWSER_FFT', '18w');
 
     // Make sure that the underlying model and metadata are loaded via HTTPS
     // requests.
@@ -59,6 +78,8 @@
 
     // See the array of words that the recognizer is trained to recognize.
     console.log(recognizer.wordLabels());
+    console.log(recognizer);
+    // debugger
 
     // `listen()` takes two arguments:
     // 1. A callback function that is invoked anytime a word is recognized.
@@ -86,7 +107,7 @@
         }
         else {
             settings.setValue('Result', "Speech Sound!!");
-            settings.setValue('Log', maxNum.toFixed(5) + " "+ label + " <br> Background "+ result.scores[0].toFixed(5));
+            settings.setValue('Log', maxNum.toFixed(5) + " " + label + " <br> Background " + result.scores[0].toFixed(5));
         }
 
 
@@ -95,12 +116,21 @@
         //   recognizer.wordLabels().
         // - result.spectrogram contains the spectrogram of the recognized word.
     }, {
-        // overlapFactor :0.9 , //second
-        includeSpectrogram: true,
-        probabilityThreshold: 0.75,
+        overlapFactor :  settings.getValuesAsJSON()["Overlap Factor"]  || 0.9 , //second
+        probabilityThreshold: settings.getValuesAsJSON()["Probability Threshold"] ||0.75,
+        includeSpectrogram: settings.getValuesAsJSON()['Spectrogram']|| true,
         invokeCallbackOnNoiseAndUnknown: true
     });
 
-// Stop the recognition in 10 seconds.
-// setTimeout(() => recognizer.stopListening(), 10e3);
+    // // Stop the recognition in 10 seconds.
+    // setTimeout(() => async function () {
+    //     debugger;
+    //     // recognizer.stopListening()
+    //     recognizer = speechCommands.create('BROWSER_FFT', 'directional4w');
+    //     await recognizer.ensureModelLoaded();
+    //     console.log(recognizer.wordLabels());
+
+    // }, 5e3);
+
+
 </script>
