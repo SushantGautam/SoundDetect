@@ -27,7 +27,7 @@
 
         if (localStorage.getItem(version) == null) { localStorage.clear(); } // clear local storage if version is different
 
-        var count = -3;
+        var count = -4;
 
         function countFunc() {
             console.log("count", ++count);
@@ -43,8 +43,9 @@
         countFunc();
 
         settings = QuickSettings.create(20, 20, "NSD-AI Sound Analysis Demo")
-            .addRange("Overlap Factor", 0.1, 0.9, 0.5, 0.1, countFunc)
-            .addRange("Probability Threshold", 0.1, 0.9, 0.0, 0.1, countFunc)
+            .addRange("Overlap Factor", 0.01, 0.99, 0.5, 0.01, countFunc)
+            .addRange("Probability Threshold", 0.01, 0.99, 0.5, 0.01, countFunc)
+            .addRange("Speech Trigger Threshold", 0.01, 0.99, 0.8, 0.01, countFunc)
             .addBoolean("Spectrogram", true)
             .addBoolean("Embedding", false)
             .addText("Result", "Waiting. . .")
@@ -99,6 +100,9 @@
         // console.log(maxNum, label, "| Background", result.scores[0])
 
         settings.setValue('color', "#ff0000");
+        
+        settings.setValue('Log', maxNum.toFixed(5) + " " + label + " <br> Background " + result.scores[0].toFixed(5));
+
 
         if (['_unknown_', '_background_noise_'].includes(label)) {
             settings.setValue('Result', "Background Noise");
@@ -106,19 +110,20 @@
 
         }
         else {
-            settings.setValue('Result', "Speech Sound!!");
-            settings.setValue('Log', maxNum.toFixed(5) + " " + label + " <br> Background " + result.scores[0].toFixed(5));
+
+            if (maxNum > settings.getValue('Speech Trigger Threshold')) {
+                settings.setValue('Result', "Speech Sound!!");
+            }
+
         }
-
-
         // debugger
         // - result.scores contains the probability scores that correspond to
         //   recognizer.wordLabels().
         // - result.spectrogram contains the spectrogram of the recognized word.
     }, {
-        overlapFactor :  settings.getValuesAsJSON()["Overlap Factor"]  || 0.9 , //second
-        probabilityThreshold: settings.getValuesAsJSON()["Probability Threshold"] ||0.75,
-        includeSpectrogram: settings.getValuesAsJSON()['Spectrogram']|| true,
+        overlapFactor: settings.getValuesAsJSON()["Overlap Factor"] || 0.9, //second
+        probabilityThreshold: settings.getValuesAsJSON()["Probability Threshold"] || 0.75,
+        includeSpectrogram: settings.getValuesAsJSON()['Spectrogram'] || true,
         invokeCallbackOnNoiseAndUnknown: true
     });
 
