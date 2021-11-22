@@ -100,8 +100,21 @@
         // console.log(maxNum, label, "| Background", result.scores[0])
 
         settings.setValue('color', "#ff0000");
-        
+
         settings.setValue('Log', maxNum.toFixed(5) + " " + label + " <br> Background " + result.scores[0].toFixed(5));
+
+        var myTimeout;
+
+        function backgroundNoiseTimeout() {
+            clearTimeout(myTimeout);
+            myTimeout = setTimeout(function () {
+                if (settings.getValuesAsJSON()["color"] !== '#0000ff') {
+                    settings.setValue('Result', "Background Noise");
+                    settings.setValue('color', "#0000ff")
+                }
+            }, 1000);
+        }
+
 
 
         if (['_unknown_', '_background_noise_'].includes(label)) {
@@ -113,6 +126,7 @@
 
             if (maxNum > settings.getValue('Speech Trigger Threshold')) {
                 settings.setValue('Result', "Speech Sound!!");
+                backgroundNoiseTimeout()
             }
 
         }
